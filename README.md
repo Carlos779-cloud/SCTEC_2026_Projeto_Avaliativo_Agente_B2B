@@ -1,0 +1,2 @@
+# SCTEC_2026_Projeto_Avaliativo_Agente_B2B
+Projeto Avaliativo Agente_IA
