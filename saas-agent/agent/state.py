@@ -6,6 +6,7 @@ substituídos pelo valor informado no update.
 
 Responsabilidades previstas:
 - perceber: ``intencao``, ``nome_empresa`` e ``creditos_solicitados``;
+- validar solicitacao: ``motivo_operacao`` quando o SaaS exigir justificativa;
 - buscar empresa: ``empresas_encontradas`` e ``empresa_id`` quando única;
 - consultar assinatura: ``assinaturas_encontradas`` e dados da assinatura
   confirmada;
@@ -23,6 +24,7 @@ from langgraph.graph.message import add_messages
 
 Parecer = Literal["aprovado", "recusado", "erro", "aguardando_confirmacao"]
 EstadoConfirmacao = Literal["nao_necessaria", "pendente", "aprovada", "recusada"]
+Intencao = Literal["consultar_assinatura", "incluir_creditos", "fora_escopo", "ambigua"]
 CreditoSolicitado = int | float | str | bool | None
 
 
@@ -38,9 +40,10 @@ class AgentState(TypedDict, total=False):
     messages: Annotated[list[AnyMessage], add_messages]
 
     # Percepção da solicitação.
-    intencao: str | None
+    intencao: Intencao | None
     nome_empresa: str | None
     creditos_solicitados: CreditoSolicitado
+    motivo_operacao: str | None
 
     # Resultados de localização e consulta; listas preservam possíveis ambiguidades.
     empresas_encontradas: list[dict[str, Any]]
@@ -78,6 +81,7 @@ def criar_estado_inicial(mensagem_usuario: str) -> AgentState:
         "intencao": None,
         "nome_empresa": None,
         "creditos_solicitados": None,
+        "motivo_operacao": None,
         "empresas_encontradas": [],
         "empresa_id": None,
         "assinaturas_encontradas": [],
