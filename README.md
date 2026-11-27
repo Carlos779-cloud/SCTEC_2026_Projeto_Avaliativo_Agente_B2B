@@ -165,6 +165,50 @@ docker compose stop
 
 `docker compose down -v` remove o volume e apaga os dados locais; use somente se quiser recriar a base do zero.
 
+## Instalação alternativa com pip
+
+O `requirements.txt` da raiz é uma exportação com versões fixadas das dependências do agente, gerada a partir de `saas-agent/uv.lock`. A forma recomendada continua sendo `uv sync --locked`, que mantém a instalação ligada ao arquivo de lock. Use os comandos abaixo se precisar instalar com `pip`; não é necessário instalar os dois métodos no mesmo ambiente.
+
+Use Python 3.12 ou superior. Em Ubuntu/Debian, instale também o pacote `python3-venv` se o módulo `venv` não estiver disponível.
+
+### Windows PowerShell
+
+Partindo da raiz do repositório:
+
+```powershell
+cd .\saas-agent
+py -3 -m venv .venv
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r ..\requirements.txt
+```
+
+Para iniciar o agente sem `uv`, ainda na pasta `saas-agent`:
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn api.server:app --host 127.0.0.1 --port 8001
+```
+
+### Linux (Bash)
+
+Partindo da raiz do repositório:
+
+```bash
+cd saas-agent
+python3 -m venv .venv
+test -f .env || cp .env.example .env
+./.venv/bin/python -m pip install --upgrade pip
+./.venv/bin/python -m pip install -r ../requirements.txt
+```
+
+Para iniciar o agente sem `uv`, ainda na pasta `saas-agent`:
+
+```bash
+./.venv/bin/python -m uvicorn api.server:app --host 127.0.0.1 --port 8001
+```
+
+Edite o `.env` para preencher `GROQ_API_KEY` antes de iniciar o agente. O `requirements.txt` cobre somente o serviço `saas-agent`; o serviço `api-saas` continua sendo iniciado pelo Docker Compose.
+
 ## APIs e contratos usados
 
 | Serviço | Método e rota | Uso |
