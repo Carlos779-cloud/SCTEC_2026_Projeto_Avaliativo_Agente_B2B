@@ -64,14 +64,14 @@ def validar_solicitacao(state: AgentState) -> dict[str, Any]:
             "operacao_permitida": False,
             "motivo_recusa": "solicitacao_fora_do_escopo",
             "parecer": "recusado",
-            "mensagem": "Posso consultar empresas e assinaturas ou solicitar créditos extras conforme as regras. Esta solicitação está fora desse escopo.",
+            "mensagem": "Não posso executar esta operação porque ela está fora das permissões do agente. Posso consultar empresas e assinaturas ou solicitar créditos extras, desde que todos os critérios sejam atendidos. Nenhuma alteração foi enviada ao SaaS.",
         }
     if intent == "ambigua":
         return {
             "operacao_permitida": False,
             "motivo_recusa": "intencao_ambigua",
             "parecer": "recusado",
-            "mensagem": "Não consegui identificar se você deseja consultar uma assinatura ou solicitar créditos. Esclareça a operação.",
+            "mensagem": "Não consegui identificar qual operação você deseja. Informe se quer consultar uma assinatura ou solicitar créditos extras e indique o nome fantasia da empresa. Nenhuma consulta ou alteração foi realizada.",
         }
     if intent not in {"consultar_assinatura", "incluir_creditos"}:
         return _falha_controlada("A intenção da solicitação não foi reconhecida.")
@@ -82,7 +82,7 @@ def validar_solicitacao(state: AgentState) -> dict[str, Any]:
             "operacao_permitida": False,
             "motivo_recusa": "nome_empresa_ausente",
             "parecer": "recusado",
-            "mensagem": "Informe o nome fantasia da empresa para eu localizar a assinatura.",
+            "mensagem": "Não foi possível iniciar a consulta porque o nome fantasia da empresa não foi informado. Envie o nome da empresa e diga se deseja consultar a assinatura ou solicitar créditos extras.",
         }
 
     if intent == "incluir_creditos":
@@ -92,7 +92,7 @@ def validar_solicitacao(state: AgentState) -> dict[str, Any]:
                 "operacao_permitida": False,
                 "motivo_recusa": "quantidade_invalida",
                 "parecer": "recusado",
-                "mensagem": "A quantidade deve ser um número inteiro entre 1 e 3.000 créditos, inclusive.",
+                "mensagem": "Não posso validar a solicitação de créditos: a quantidade precisa ser um número inteiro de 1 a 3.000, inclusive. Informe uma quantidade dentro desse intervalo; nenhum crédito foi enviado ao SaaS.",
             }
 
         reason = state.get("motivo_operacao")
@@ -101,7 +101,7 @@ def validar_solicitacao(state: AgentState) -> dict[str, Any]:
                 "operacao_permitida": False,
                 "motivo_recusa": "motivo_ausente",
                 "parecer": "recusado",
-                "mensagem": "Informe o motivo da inclusão de créditos para que a operação possa ser registrada na auditoria.",
+                "mensagem": "Não posso solicitar a inclusão sem uma justificativa explícita. Informe o motivo da operação para que ele possa ser registrado na auditoria; nenhum crédito foi enviado ao SaaS.",
             }
 
     return {"operacao_permitida": None}
@@ -120,7 +120,7 @@ def buscar_empresa_node(state: AgentState) -> dict[str, Any]:
             "operacao_permitida": False,
             "motivo_recusa": "empresa_nao_encontrada",
             "parecer": "recusado",
-            "mensagem": "Não encontrei uma empresa com esse nome fantasia.",
+            "mensagem": "A busca não encontrou uma empresa correspondente ao nome informado. Confira a grafia ou envie o nome fantasia completo. O fluxo foi encerrado sem consultar uma assinatura e sem solicitar créditos.",
         }
     if len(companies) > 1:
         options = "; ".join(
@@ -131,7 +131,7 @@ def buscar_empresa_node(state: AgentState) -> dict[str, Any]:
             "operacao_permitida": False,
             "motivo_recusa": "empresa_ambigua",
             "parecer": "recusado",
-            "mensagem": f"Encontrei mais de uma empresa compatível: {options}. Informe qual delas deseja consultar.",
+            "mensagem": f"A busca encontrou mais de uma empresa compatível: {options}. Para evitar consultar ou alterar a conta errada, informe o nome ou ID da empresa desejada. Nenhuma assinatura foi consultada e nenhum crédito foi solicitado.",
         }
 
     company = companies[0]
@@ -152,7 +152,7 @@ def consultar_assinatura_node(state: AgentState) -> dict[str, Any]:
                 "operacao_permitida": False,
                 "motivo_recusa": "assinatura_nao_encontrada",
                 "parecer": "recusado",
-                "mensagem": "A API não encontrou uma assinatura para essa empresa.",
+                "mensagem": "A empresa foi localizada, mas o SaaS não retornou uma assinatura para ela. Confirme se a empresa correta foi informada ou solicite apoio administrativo. Nenhuma inclusão de créditos foi realizada.",
             }
         return {"erro": result.get("error", "Falha ao consultar a assinatura.")}
 
@@ -163,7 +163,7 @@ def consultar_assinatura_node(state: AgentState) -> dict[str, Any]:
             "operacao_permitida": False,
             "motivo_recusa": "assinatura_nao_encontrada",
             "parecer": "recusado",
-            "mensagem": "Não encontrei uma assinatura para essa empresa.",
+            "mensagem": "A consulta da empresa não retornou assinaturas. Confirme os dados da empresa ou solicite apoio administrativo. Nenhuma inclusão de créditos foi realizada.",
         }
     if len(subscriptions) > 1:
         options = "; ".join(
@@ -175,7 +175,7 @@ def consultar_assinatura_node(state: AgentState) -> dict[str, Any]:
             "operacao_permitida": False,
             "motivo_recusa": "assinatura_ambigua",
             "parecer": "recusado",
-            "mensagem": f"A empresa possui mais de uma assinatura: {options}. Esclareça qual deseja consultar.",
+            "mensagem": f"A empresa possui mais de uma assinatura: {options}. Informe qual assinatura deseja consultar; o agente não escolherá uma automaticamente. Nenhuma inclusão de créditos foi realizada.",
         }
 
     subscription = subscriptions[0]
@@ -198,7 +198,7 @@ def validar_regras(state: AgentState) -> dict[str, Any]:
         return {
             "operacao_permitida": True,
             "parecer": "aprovado",
-            "mensagem": "Consulta concluída com os dados retornados pela API SaaS.",
+            "mensagem": f"Consulta concluída. A API SaaS retornou a empresa {state.get('nome_empresa') or 'informada'} (ID {state.get('empresa_id')}), assinatura #{state.get('assinatura_id')}, plano {state.get('plano')}, status {state.get('status_assinatura')} e saldo atual de {state.get('saldo_atual')} créditos. Esta solicitação foi somente de consulta; nenhum crédito foi incluído.",
         }
 
     if str(state["status_assinatura"]).strip().upper() != "ATIVA":
@@ -206,7 +206,7 @@ def validar_regras(state: AgentState) -> dict[str, Any]:
             "operacao_permitida": False,
             "motivo_recusa": "assinatura_inativa",
             "parecer": "recusado",
-            "mensagem": "A assinatura não está ativa; nenhuma inclusão de créditos foi realizada.",
+            "mensagem": f"Não posso incluir créditos porque a assinatura #{state.get('assinatura_id')} da empresa {state.get('nome_empresa') or 'informada'} está com status {state.get('status_assinatura')}, e a regra exige status ATIVA. A operação foi bloqueada antes do POST; nenhum crédito foi incluído.",
         }
 
     quantity = state.get("creditos_solicitados")
@@ -215,7 +215,7 @@ def validar_regras(state: AgentState) -> dict[str, Any]:
             "operacao_permitida": False,
             "motivo_recusa": "quantidade_invalida",
             "parecer": "recusado",
-            "mensagem": "A quantidade deve ser um número inteiro entre 1 e 3.000 créditos, inclusive.",
+            "mensagem": "A quantidade solicitada não passou pela validação: deve ser um número inteiro entre 1 e 3.000, inclusive. Corrija a quantidade para continuar. Nenhum POST foi enviado ao SaaS.",
         }
     reason = state.get("motivo_operacao")
     if not isinstance(reason, str) or len(reason.strip()) < 3:
@@ -223,7 +223,7 @@ def validar_regras(state: AgentState) -> dict[str, Any]:
             "operacao_permitida": False,
             "motivo_recusa": "motivo_ausente",
             "parecer": "recusado",
-            "mensagem": "Informe o motivo da inclusão para registro de auditoria.",
+            "mensagem": "A solicitação não contém uma justificativa válida para a inclusão. Informe o motivo para que seja registrado na auditoria. Nenhum POST foi enviado ao SaaS.",
         }
 
     return {"operacao_permitida": True}
@@ -248,7 +248,7 @@ def incluir_creditos_node(state: AgentState) -> dict[str, Any]:
             "operacao_permitida": False,
             "motivo_recusa": "validacao_final_reprovada",
             "parecer": "recusado",
-            "mensagem": "A validação final não autorizou a inclusão. Nenhum crédito foi enviado ao SaaS.",
+            "mensagem": "A verificação final não confirmou todos os requisitos: assinatura identificada e ativa, quantidade inteira entre 1 e 3.000 e justificativa informada. Por segurança, o POST não foi enviado e nenhum crédito foi solicitado.",
         }
 
     result = incluir_creditos.invoke(
@@ -264,20 +264,32 @@ def incluir_creditos_node(state: AgentState) -> dict[str, Any]:
                 "operacao_permitida": False,
                 "motivo_recusa": "api_recusou_operacao",
                 "parecer": "recusado",
-                "mensagem": "A API SaaS recusou a inclusão; não foi confirmada como concluída.",
+                "mensagem": "A API SaaS recusou a solicitação de inclusão. A operação não foi confirmada como concluída; confira o status da assinatura, a quantidade e a justificativa antes de tentar novamente.",
             }
-        return {"erro": result.get("error", "Falha ao incluir créditos no SaaS.")}
+        return {"erro": "Não foi possível confirmar o resultado da inclusão junto ao SaaS. Consulte o saldo e a auditoria da assinatura antes de repetir a solicitação, para evitar uma inclusão duplicada."}
 
     updated = result.get("data", {})
     if updated.get("id") != subscription_id:
-        return {"erro": "A API SaaS retornou uma assinatura diferente da solicitada; não foi possível confirmar o resultado."}
+        return {"erro": "A API SaaS retornou dados de outra assinatura. Não foi possível confirmar a inclusão; confira o saldo e a auditoria antes de qualquer nova tentativa."}
+
+    empresa = state.get("nome_empresa") or f"ID {state.get('empresa_id')}"
+    plano = state.get("plano") or "não informado"
+    status = state.get("status_assinatura") or "ATIVA"
+    saldo_anterior = state.get("saldo_atual")
+    saldo_novo = updated["saldo_creditos_api"]
 
     return {
         "resultado_inclusao": result,
         "creditos_incluidos": quantity,
-        "saldo_atualizado": updated["saldo_creditos_api"],
+        "saldo_atualizado": saldo_novo,
         "parecer": "aprovado",
-        "mensagem": "A API SaaS confirmou a inclusão dos créditos extras.",
+        "mensagem": (
+            f"Solicitação aprovada para a empresa {empresa} (assinatura #{subscription_id}, "
+            f"plano informado {plano}, status {status}). Todos os critérios de negócio implementados foram validados "
+            f"(assinatura ativa, quantidade inteira entre 1 e 3.000 e motivo "
+            f"registrado: '{reason.strip()}'). A API SaaS confirmou a inclusão de {quantity} "
+            f"créditos extras, atualizando o saldo de {saldo_anterior} para {saldo_novo} créditos."
+        ),
     }
 
 

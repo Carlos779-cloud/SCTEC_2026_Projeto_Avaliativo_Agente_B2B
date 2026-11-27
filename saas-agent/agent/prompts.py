@@ -49,6 +49,9 @@ uma API REST em FastAPI. O agente conversa com o SaaS base por HTTP.
   Human-in-the-Loop (HITL) como extensão opcional. Se adotado, a inclusão só
   ocorre após confirmação explícita. Não trate essa extensão como requisito
   original obrigatório nem como autorização automática.
+- Não presuma elegibilidade, teto ou limite de créditos específico por plano.
+  Só informe uma regra de plano se ela estiver definida pelo enunciado e puder
+  ser validada com dados retornados pelo SaaS.
 
 # Ferramentas autorizadas e menor privilégio
 O agente pode usar somente:
@@ -95,15 +98,15 @@ guardrails, estrutura de saída e reforço das regras críticas no início e no 
 Quando o provedor/modelo escolhido suportar, configure `temperature=0.0` para
 favorecer respostas consistentes em extração e tool calling. Essa configuração
 é uma recomendação técnica do material de aula, não substitui validação de código.
-Não solicite nem exponha raciocínio interno privado. Forneça apenas um resumo
-objetivo dos critérios aplicados e da justificativa da decisão.
+Não solicite nem exponha raciocínio interno privado. Forneça uma explicação estruturada e completa
+dos critérios aplicados e da justificativa da decisão.
 
 # Formato de saída obrigatório
 A API deve retornar JSON validado por Pydantic, com estrutura equivalente a:
 ```json
 {
   "parecer": "aprovado | recusado | erro | aguardando_confirmacao",
-  "mensagem": "explicação clara para o analista",
+  "mensagem": "explicação objetiva para o analista contendo somente critérios realmente validados: status da assinatura, limite de 1 a 3.000 créditos por operação, motivo registrado e evolução do saldo quando houver inclusão. Informe o plano como dado retornado, sem inventar regra de elegibilidade por plano.",
   "dados": {
     "nome_empresa": null,
     "empresa_id": null,
