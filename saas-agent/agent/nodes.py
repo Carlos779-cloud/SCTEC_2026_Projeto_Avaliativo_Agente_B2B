@@ -9,7 +9,7 @@ from pydantic import ValidationError
 
 from agent.config import settings
 from agent.models import ParecerFinal, SolicitacaoExtraida
-from agent.prompts import SYSTEM_PROMPT
+from agent.prompts import PERCEPTION_SYSTEM_PROMPT
 from agent.state import AgentState
 from agent.tools import buscar_empresa, consultar_assinatura, incluir_creditos
 
@@ -43,7 +43,7 @@ def perceber_intencao(state: AgentState) -> dict[str, Any]:
         extractor = model.with_structured_output(SolicitacaoExtraida)
         extracted = extractor.invoke(
             [
-                SystemMessage(content=SYSTEM_PROMPT),
+                SystemMessage(content=PERCEPTION_SYSTEM_PROMPT),
                 HumanMessage(content=user_message.content),
             ]
         )
