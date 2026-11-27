@@ -1,6 +1,6 @@
 """Schemas de entrada das tools e de resposta da API SaaS."""
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -74,3 +74,56 @@ class AssinaturaSaaS(BaseModel):
     status: str
     saldo_creditos_api: int
     limite_usuarios: int
+
+
+class SolicitacaoExtraida(BaseModel):
+    """Dados explícitos da mensagem, extraídos pelo modelo sem decidir regras."""
+
+    intencao: Literal[
+        "consultar_assinatura",
+        "incluir_creditos",
+        "fora_escopo",
+        "ambigua",
+    ] = Field(description="Intenção operacional expressa na mensagem do analista.")
+    nome_empresa: str | None = Field(
+        default=None,
+        max_length=150,
+        description="Nome fantasia informado explicitamente; nunca invente um nome.",
+    )
+    creditos_solicitados: int | float | str | bool | None = Field(
+        default=None,
+        description="Quantidade tal como expressa; preserve frações e valores inválidos.",
+    )
+    motivo_operacao: str | None = Field(
+        default=None,
+        max_length=500,
+        description="Justificativa explícita para inclusão, sem inventar motivo.",
+    )
+
+    @field_validator("nome_empresa", "motivo_operacao", mode="before")
+    @classmethod
+    def trim_optional_text(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
+
+
+class ParecerDados(BaseModel):
+    """Dados conhecidos usados no JSON final da API do agente."""
+
+    nome_empresa: str | None = None
+    empresa_id: int | None = None
+    assinatura_id: int | None = None
+    plano: str | None = None
+    status_assinatura: str | None = None
+    saldo_anterior: int | None = None
+    creditos_solicitados: int | float | str | bool | None = None
+    creditos_incluidos: int | None = None
+    saldo_atualizado: int | None = None
+
+
+class ParecerFinal(BaseModel):
+    """Resposta JSON validada, equivalente ao formato definido no prompt."""
+
+    parecer: Literal["aprovado", "recusado", "erro", "aguardando_confirmacao"]
+    mensagem: str
+    dados: ParecerDados
+    motivo_recusa: str | None = None
