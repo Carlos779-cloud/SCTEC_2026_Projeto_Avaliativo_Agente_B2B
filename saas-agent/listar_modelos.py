@@ -45,3 +45,10 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+# Acessa a pasta do projeto SaaS Agent.
+# cd saas-agent
+
+# Lista os modelos disponíveis na API Groq para a chave configurada.
+# python listar_modelos.py
+ 

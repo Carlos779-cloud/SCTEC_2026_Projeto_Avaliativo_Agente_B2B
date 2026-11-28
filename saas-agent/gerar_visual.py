@@ -67,3 +67,9 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+# Gera os arquivos Mermaid (.mmd e .md) e a imagem PNG do grafo do agente.
+# python gerar_visual.py
+
+# Gera somente os arquivos Mermaid (.mmd e .md), sem renderizar a imagem PNG.
+# python gerar_visual.py --mermaid-only
