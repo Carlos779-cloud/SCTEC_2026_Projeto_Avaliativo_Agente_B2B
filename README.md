@@ -66,6 +66,26 @@ Preencha `GROQ_API_KEY` no `.env` com uma chave válida da sua conta Groq. Confi
 
 O agente lê o `.env` localizado na pasta `saas-agent`. O `.gitignore` raiz ignora arquivos `.env`; mantenha a chave somente nesse arquivo local.
 
+## Listar modelos disponíveis na Groq
+
+O script `saas-agent/listar_modelos.py` usa a chave configurada em `saas-agent/.env` e imprime os IDs retornados pela API Groq. Ele pode ser executado a partir da raiz do repositório:
+
+Windows PowerShell:
+
+```powershell
+cd .\saas-agent
+uv run python .\listar_modelos.py
+```
+
+Linux Bash:
+
+```bash
+cd saas-agent
+uv run python listar_modelos.py
+```
+
+O script lista os modelos visíveis para a chave; confirme que o ID escolhido em `LLM_MODEL` é compatível com geração de texto antes de usá-lo no agente.
+
 ## Executar os serviços
 
 ### 1. Iniciar o SaaS e PostgreSQL
@@ -292,6 +312,16 @@ No terminal de cada servidor, use `Ctrl+C` para parar a API do agente. Para para
 cd .\api-saas
 docker compose stop
 ```
+
+## Melhorias futuras
+
+As ideias abaixo são propostas para versões futuras; não fazem parte da implementação atual:
+
+- **Autenticação e perfis de acesso:** proteger a API e definir quais analistas podem consultar ou solicitar inclusões.
+- **Idempotência e confirmação de operações:** evitar duplicidade em novas tentativas após timeout e facilitar a conferência de saldo e auditoria.
+- **Testes automatizados e integração contínua:** cobrir tools, grafo e API com respostas simuladas e uma base de teste isolada.
+- **Observabilidade:** adicionar logs estruturados, identificador por solicitação e métricas sem registrar chaves ou dados sensíveis.
+- **Políticas por plano:** definir com a área responsável se há limites ou permissões diferentes por plano e implementar somente após documentar essas regras.
 
 ## Entrega
 
