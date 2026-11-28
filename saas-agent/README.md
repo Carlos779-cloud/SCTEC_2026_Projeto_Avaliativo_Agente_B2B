@@ -175,6 +175,16 @@ cd .\api-saas
 docker compose stop
 ```
 
+## Melhorias futuras
+
+As ideias abaixo são propostas para versões futuras; não fazem parte da implementação atual:
+
+- **Autenticação e perfis de acesso:** proteger a API e definir quais analistas podem consultar ou solicitar inclusões.
+- **Idempotência e confirmação de operações:** evitar duplicidade em novas tentativas após timeout e facilitar a conferência de saldo e auditoria.
+- **Testes automatizados e integração contínua:** cobrir tools, grafo e API com respostas simuladas e uma base de teste isolada.
+- **Observabilidade:** adicionar logs estruturados, identificador por solicitação e métricas sem registrar chaves ou dados sensíveis.
+- **Políticas por plano:** definir com a área responsável se há limites ou permissões diferentes por plano e implementar somente após documentar essas regras.
+
 ## Entrega
 
 **Data prevista da entrega:** 30/11/2026  
