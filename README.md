@@ -1,6 +1,6 @@
 # SCTEC_2026_Projeto_Avaliativo_Agente_B2B
 
-**Link para clonar o repositório:** `[INSERIR LINK DO GIT CLONE]`  
+**Link para clonar o repositório:** `git@github.com:Carlos779-cloud/SCTEC_2026_Projeto_Avaliativo_Agente_B2B.git`  
 **Link do vídeo de demonstração:** `[INSERIR LINK DO VÍDEO]`
 
 ## Objetivo
